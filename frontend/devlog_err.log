@@ -1,0 +1,34 @@
+[2m9:37:23 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\Samarth upadhyay\Documents\ECG\frontend\src\pages\History.jsx: 'return' outside of function. (107:2)
+
+[0m [90m 105 |[39m   )
+ [90m 106 |[39m
+[31m[1m>[22m[39m[90m 107 |[39m   [36mreturn[39m (
+ [90m     |[39m   [31m[1m^[22m[39m
+ [90m 108 |[39m     [33m<[39m[33mdiv[39m className[33m=[39m[32m"space-y-6"[39m[33m>[39m
+ [90m 109 |[39m       [33m<[39m[33mdiv[39m[33m>[39m
+ [90m 110 |[39m         [33m<[39m[33mh1[39m className[33m=[39m[32m"section-title"[39m[33m>[39m[33mPrediction[39m [33mHistory[39m[33m<[39m[33m/[39m[33mh1[39m[33m>[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/Samarth upadhyay/Documents/ECG/frontend/src/pages/History.jsx[39m:107:2
+[33m  105|    )
+  106|  
+  107|    return (
+     |    ^
+  108|      <div className="space-y-6">
+  109|        <div>[39m
+[2m9:37:23 pm[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\Samarth upadhyay\Documents\ECG\frontend\src\pages\Analytics.jsx: Unterminated JSX contents. (196:10)
+
+[0m [90m 194 |[39m         [33m<[39m[33m/[39m[33mLink[39m[33m>[39m
+ [90m 195 |[39m       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+[31m[1m>[22m[39m[90m 196 |[39m     [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m     |[39m           [31m[1m^[22m[39m
+ [90m 197 |[39m   )
+ [90m 198 |[39m }
+ [90m 199 |[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/Samarth upadhyay/Documents/ECG/frontend/src/pages/Analytics.jsx[39m:196:10
+[33m  194|          </Link>
+  195|        </div>
+  196|      </div>
+     |            ^
+  197|    )
+  198|  }[39m

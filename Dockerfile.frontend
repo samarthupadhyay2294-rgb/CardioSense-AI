@@ -1,0 +1,20 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+COPY frontend/package.json /app/package.json
+COPY frontend/package-lock.json* /app/
+
+RUN npm install --no-audit --no-fund
+
+COPY frontend /app
+RUN npm run build
+
+FROM node:20-alpine
+
+WORKDIR /app
+COPY --from=build /app/dist /app/dist
+
+RUN npm install -g serve
+
+EXPOSE 5173
+CMD ["serve", "-s", "dist", "-l", "5173"]

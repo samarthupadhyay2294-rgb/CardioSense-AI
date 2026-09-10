@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Backend
+backend/cardiosense.db
+backend/*.db
+backend/logs/
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep
+*.pdf
+
+# Env
+.env
+.env.local
+backend/.env
+frontend/.env
+*.env.local
+
+# Node
+node_modules/
+frontend/dist/
+npm-debug.log*
+yarn-error.log*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Model files (large, keep source in model_reference/ if needed)
+backend/models/*.pt
+
+# Test artifacts
+.tmp/
+
+records100.zip

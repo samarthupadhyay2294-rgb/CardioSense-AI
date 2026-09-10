@@ -1,0 +1,55 @@
+{
+  "model_name": "EfficientNet-B0",
+  "model_type": "ECG image classifier",
+  "input_size": [
+    224,
+    224
+  ],
+  "classes": [
+    "A",
+    "E",
+    "F",
+    "J",
+    "L",
+    "N",
+    "Q",
+    "R",
+    "S",
+    "V",
+    "aa",
+    "e",
+    "f",
+    "j",
+    "p"
+  ],
+  "class_mapping": {
+    "A": 0,
+    "E": 1,
+    "F": 2,
+    "J": 3,
+    "L": 4,
+    "N": 5,
+    "Q": 6,
+    "R": 7,
+    "S": 8,
+    "V": 9,
+    "aa": 10,
+    "e": 11,
+    "f": 12,
+    "j": 13,
+    "p": 14
+  },
+  "normalization": {
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "model_version": "1.0"
+}

@@ -1,0 +1,66 @@
+{
+  "model_name": "ECGCNN",
+  "model_version": "1.0",
+  "input_shape": [
+    12,
+    1000
+  ],
+  "sampling_rate": 100,
+  "num_leads": 12,
+  "time_points": 1000,
+  "classes": [
+    "NORM",
+    "MI",
+    "STTC",
+    "CD",
+    "HYP"
+  ],
+  "class_names": {
+    "NORM": "Normal",
+    "MI": "Myocardial Infarction",
+    "STTC": "ST/T Changes",
+    "CD": "Conduction Disturbance",
+    "HYP": "Hypertrophy"
+  },
+  "class_descriptions": {
+    "NORM": "Normal ECG. No significant abnormalities detected.",
+    "MI": "Signs of myocardial infarction (heart attack). Seek immediate medical attention.",
+    "STTC": "ST/T wave changes indicating possible ischemia or other abnormalities.",
+    "CD": "Conduction disturbance affecting the heart's electrical signaling.",
+    "HYP": "Evidence of ventricular hypertrophy (enlarged heart muscle)."
+  },
+  "preprocessing": {
+    "bandpass_lowcut": 0.5,
+    "bandpass_highcut": 40.0,
+    "bandpass_order": 4,
+    "normalization": "per_record_zscore"
+  },
+  "model_parameters": {
+    "in_channels": 12,
+    "n_classes": 5,
+    "conv_kernel_size": 7,
+    "conv_padding": 3,
+    "pool_size": 2,
+    "fc_units": [
+      256,
+      128,
+      5
+    ],
+    "dropout": 0.4
+  },
+  "thresholds": {
+    "NORM": 0.3232671618461609,
+    "MI": 0.5393802523612976,
+    "STTC": 0.5180799961090088,
+    "CD": 0.4472930431365967,
+    "HYP": 0.5002087950706482
+  },
+  "training_config": {
+    "batch_size": 64,
+    "epochs": 30,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "loss_function": "BCEWithLogitsLoss"
+  },
+  "device": "cpu"
+}
