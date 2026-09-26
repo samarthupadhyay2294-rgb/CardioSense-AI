@@ -129,7 +129,9 @@ async def upload_ecg(
             processing_time=result["processing_time"],
             explainability=result.get("explainability"),
             ecg_statistics=result.get("ecg_statistics"),
-            signal_data=result.get("signal_data")
+            signal_data=result.get("signal_data"),
+            detailed_features=result.get("detailed_features"),
+            clinical_interpretation=result.get("clinical_interpretation")
         )
         db.add(analysis)
         db.commit()

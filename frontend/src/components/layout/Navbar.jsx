@@ -11,14 +11,18 @@ import {
   HeartPulse,
   Sun,
   Moon,
+  TrendingUp,
+  Layers,
 } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/analyze', label: 'Analyze', icon: Activity },
+  { to: '/batch', label: 'Batch', icon: Layers },
   { to: '/history', label: 'History', icon: History },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/performance', label: 'Performance', icon: TrendingUp },
   { to: '/model', label: 'Model', icon: BrainCircuit },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
   { to: '/help', label: 'Help', icon: HelpCircle },
@@ -29,6 +33,7 @@ function Navbar() {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
+  const [logoOk, setLogoOk] = React.useState(true)
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -47,13 +52,24 @@ function Navbar() {
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-700 to-aqua-500 text-white shadow-glow">
-            <HeartPulse className="h-5 w-5" />
-          </span>
-          <span className="font-display text-lg font-bold text-slate-900 dark:text-white">
-            CardioSense <span className="text-aqua-600 dark:text-aqua-400">AI</span>
-          </span>
+        <Link to="/" className="flex min-w-0 items-center gap-2" aria-label="CardioSense AI — home">
+          {logoOk ? (
+            <img
+              src="/cardiosense-ai-logo.png"
+              alt="CardioSense AI — Smarter ECG Analysis"
+              className="h-9 w-auto max-w-[150px] rounded-lg object-contain sm:h-10 sm:max-w-[210px]"
+              onError={() => setLogoOk(false)}
+            />
+          ) : (
+            <>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-700 to-aqua-500 text-white shadow-glow">
+                <HeartPulse className="h-5 w-5" />
+              </span>
+              <span className="font-display text-lg font-bold text-slate-900 dark:text-white">
+                CardioSense <span className="text-aqua-600 dark:text-aqua-400">AI</span>
+              </span>
+            </>
+          )}
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

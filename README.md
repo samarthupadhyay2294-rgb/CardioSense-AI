@@ -54,6 +54,7 @@
 - 📊 **Interactive Waveform Viewer**: Zoom, pan, reset, hover inspection, and lead selector
 - 🔍 **Integrated Gradients**: Lead and time importance explainability
 - 📈 **Signal Statistics**: Amplitude, duration, quality metrics, and sampling rate analysis
+- 🔄 **Batch Processing**: Upload and analyze multiple ECG files with CSV/JSON export
 
 ### 🖼️ Image Analysis
 - 📸 **Smart Image Upload**: Instant preview with validation (type, size, decodability checks)
@@ -70,6 +71,27 @@
 - 🤖 **CardioSense Assistant**: AI-powered Q&A using only your analysis data
 - 📄 **PDF Reports**: Professional reports for both signal and image analyses
 - 🌙 **Modern UI**: Dark mode, responsive design, accessibility features, and smooth animations
+
+### ⚡ Real-Time ECG Streaming
+- 📡 **WebSocket Streaming**: Real-time ECG data streaming from simulated acquisition source
+- 🎛️ **Interactive Controls**: Start/stop acquisition, configure heart rate, adjust streaming parameters
+- 📊 **Live Visualization**: Real-time 12-lead ECG display with single-lead and grid modes
+- 🔄 **Reconnection Support**: Automatic reconnection handling for WebSocket connections
+
+### 🧪 Clinical Interpretation
+- 📋 **Structured Findings**: Primary and secondary clinical findings based on prediction
+- 🚨 **Urgency Assessment**: Automatic urgency level assignment (routine, urgent, emergency)
+- 💡 **Recommendations**: Actionable clinical recommendations based on findings
+- 🔍 **Differential Diagnosis**: Possible alternative diagnoses to consider
+- ⚠️ **Limitations**: Clear documentation of interpretation limitations and disclaimers
+
+### 📈 Model Performance Evaluation
+- 📊 **Genuine Metrics**: Accuracy, precision, recall, F1, sensitivity, specificity calculated from actual predictions
+- 📉 **Confusion Matrix**: Interactive confusion matrix with raw counts and normalized percentages
+- 📋 **Per-Class Metrics**: Detailed metrics for each prediction class
+- 🎯 **ROC-AUC**: ROC-AUC scores when probability scores are available
+- 📁 **Dataset Information**: Dataset metadata and evaluation configuration
+- 🔬 **Reproducible Evaluation**: Command-line script for reproducible model evaluation
 
 ---
 
@@ -207,16 +229,20 @@ cardiosense-ai/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                 # FastAPI entrypoint (loads both models once)
-│   │   ├── api/                    # health, ecg, ecg-image, history, statistics, model
+│   │   ├── api/                    # health, ecg, ecg-image, history, statistics, model,
+│   │   │                           # realtime, simulation, performance, batch
 │   │   ├── ml/                     # model loaders, predictors, preprocessing,
 │   │   │                           # image_interpretation.py, image_gradcam.py, explainability.py
 │   │   ├── database/               # database.py, models.py, schemas.py
-│   │   ├── services/               # ecg_service, image_service, report_service, summary_service
+│   │   ├── services/               # ecg_service, image_service, report_service, summary_service,
+│   │   │                           # realtime_acquisition, clinical_interpretation,
+│   │   │                           # model_evaluation, batch_processing
 │   │   └── core/                   # config.py (env), logging.py
 │   ├── config/model_config.json    # signal model config (real)
 │   ├── models/ptbxl_cnn_best.pt    # signal checkpoint
 │   ├── models/image/               # image checkpoint + model_config.json
 │   ├── uploads/  reports/  tests/  # uploaded files, generated PDFs, pytest suite
+│   ├── scripts/                     # evaluate_model.py for model performance evaluation
 │   ├── .env.example
 │   └── requirements.txt
 ├── frontend/
@@ -224,7 +250,8 @@ cardiosense-ai/
 │   │   ├── components/             # layout, dashboard, ecg, results, assistant,
 │   │   │                           # image-analysis (uploader, preview, gradcam, pattern assessment)
 │   │   ├── pages/                  # Landing, Dashboard, AnalyzeECG, Results, History, Analytics,
-│   │   │                           # ModelInfo, Settings, Help, AnalysisDetails
+│   │   │                           # ModelInfo, Settings, Help, AnalysisDetails, Simulation,
+│   │   │                           # Realtime, PerformanceMetrics, BatchAnalysis
 │   │   ├── services/  hooks/  utils/  assets/  context/
 │   │   └── App.jsx  main.jsx  index.css
 │   ├── index.html  vite.config.js  tailwind.config.js  package.json
@@ -337,7 +364,7 @@ docker compose up --build
    - **Signal**: Upload a 12-lead ECG. A sample pair is available at `data/sample_ecg/00001_lr.hea` + `.dat` (normal) — upload both files together
    - **Image**: Upload a PNG/JPG/JPEG of an ECG (≤ 20 MB); preview is shown before analysis
 4. **View Results**:
-   - **Signal**: ECG waveform, statistics, Integrated Gradients explainability
+   - **Signal**: ECG waveform, statistics, Integrated Gradients explainability, clinical interpretation
    - **Image**: Uploaded image, real Grad-CAM overlay, ECG Pattern Assessment (subclass labels, group bars, report, next steps, confidence & limitations)
 5. **Export & Interact**:
    - Download a **PDF report**
@@ -346,6 +373,20 @@ docker compose up --build
    - Monitor everything on **Dashboard**
    - Review **History** (with Signal/Image filter)
    - Explore **Analytics** (separate signal and image prediction distributions)
+7. **Real-Time Streaming**:
+   - Go to **Real-Time** page to start simulated ECG streaming
+   - Configure heart rate and streaming parameters
+   - View live 12-lead ECG visualization
+8. **Batch Analysis**:
+   - Go to **Batch** page to upload multiple ECG files
+   - Process files in batch with progress tracking
+   - Filter results by status or prediction
+   - Export results as CSV or JSON
+9. **Performance Evaluation**:
+   - Go to **Performance** page to view model metrics
+   - Run evaluation on PTB-XL dataset
+   - View confusion matrix and per-class metrics
+   - Export evaluation results
 
 ### 🎯 Key Features
 
@@ -381,6 +422,21 @@ docker compose up --build
 | `GET` | `/api/model/info` | Get signal model information |
 | `GET` | `/api/model/image-info` | Get image model information |
 | `GET` | `/api/model/status` | Get model loading status |
+| `POST` | `/api/simulation/generate` | Generate simulated ECG signal |
+| `GET` | `/api/realtime/status` | Get real-time acquisition status |
+| `POST` | `/api/realtime/start` | Start real-time acquisition |
+| `POST` | `/api/realtime/stop` | Stop real-time acquisition |
+| `POST` | `/api/realtime/configure` | Configure real-time parameters |
+| `GET` | `/api/performance/status` | Get model evaluation status |
+| `GET` | `/api/performance/metrics` | Get model performance metrics |
+| `GET` | `/api/performance/confusion-matrix` | Get confusion matrix |
+| `GET` | `/api/performance/classes` | Get per-class metrics |
+| `POST` | `/api/performance/evaluate` | Trigger model evaluation |
+| `POST` | `/api/batch/analyze` | Analyze multiple ECG files in batch |
+| `GET` | `/api/batch/{batch_id}` | Get batch processing results |
+| `GET` | `/api/batch/{batch_id}/export/csv` | Export batch results as CSV |
+| `GET` | `/api/batch/{batch_id}/export/json` | Export batch results as JSON |
+| `GET` | `/api/batch/{batch_id}/filter` | Filter batch results |
 
 ### 📚 Full Documentation
 
@@ -402,7 +458,7 @@ py -3 -m pytest tests -v
 
 ### 📊 Test Coverage
 
-The comprehensive test suite (32 tests) covers:
+The comprehensive test suite (96 tests) covers:
 - ✅ Health endpoints and model status
 - ✅ Both model loaders (signal and image)
 - ✅ Preprocessing shapes and validation
@@ -414,6 +470,13 @@ The comprehensive test suite (32 tests) covers:
 - ✅ Report field validation
 - ✅ History and pagination
 - ✅ Database behavior and migrations
+- ✅ ECG simulation (Part 1)
+- ✅ Real-time acquisition (Part 2)
+- ✅ Clinical interpretation (Part 3)
+- ✅ Model evaluation (Part 4)
+- ✅ Performance API (Part 4)
+- ✅ Batch processing (Part 5)
+- ✅ Batch API (Part 5)
 
 ### 🎯 Test Categories
 

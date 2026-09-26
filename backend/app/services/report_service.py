@@ -1,4 +1,7 @@
+import io
+import logging
 import os
+import tempfile
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -7,9 +10,20 @@ from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, HRFlowable, KeepTogether
 from reportlab.lib.enums import TA_CENTER
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+
+from PIL import Image as PILImage
+from PIL import ImageDraw, ImageFont
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+LEAD_ORDER_12 = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"]
+LEAD_HEX_COLORS_12 = [
+    "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
+    "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8B500", "#52B788",
+]
 
 BRAND_COLOR = colors.HexColor("#1e40af")
 ACCENT_COLOR = colors.HexColor("#0891b2")
@@ -266,6 +280,192 @@ class ReportService:
         except Exception:
             story.append(Paragraph("(Image could not be embedded in the report.)", self.styles["BodyStyle"]))
 
+    @staticmethod
+    def _hex_to_rgb(h: str):
+        h = h.lstrip("#")
+        return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+
+    def _render_signal_waveform_image(
+        self, signal_data: List[Any], sampling_rate: int = 100
+    ) -> Optional[str]:
+        """Render the stored analysis signal as a clean white 12-lead PNG.
+
+        Uses ONLY the signal_data passed in (the same data served to the UI).
+        Returns a temporary PNG file path, or None if rendering is impossible.
+        """
+        try:
+            if not signal_data or not isinstance(signal_data, list):
+                return None
+            leads = []
+            for lead in signal_data[:12]:
+                try:
+                    vals = [float(v) for v in list(lead)]
+                except Exception:
+                    continue
+                if len(vals) >= 10:
+                    leads.append(vals)
+            if not leads:
+                return None
+
+            n_leads = len(leads)
+            try:
+                sr = int(sampling_rate) if sampling_rate else 100
+            except Exception:
+                sr = 100
+            if sr <= 0:
+                sr = 100
+
+            # High-resolution canvas (white, print-friendly)
+            W, H = 2400, 1700
+            M_LEFT, M_RIGHT, M_TOP, M_BOTTOM = 130, 50, 60, 60
+            COLS, ROWS = 3, 4
+            grid_w = W - M_LEFT - M_RIGHT
+            grid_h = H - M_TOP - M_BOTTOM
+            cell_w = grid_w / COLS
+            cell_h = grid_h / ROWS
+
+            img = PILImage.new("RGB", (W, H), "white")
+            draw = ImageDraw.Draw(img)
+            try:
+                f_title = ImageFont.load_default(size=44)
+                f_label = ImageFont.load_default(size=32)
+                f_tick = ImageFont.load_default(size=28)
+            except Exception:
+                f_title = ImageFont.load_default()
+                f_label = f_title
+                f_tick = f_title
+
+            dark = (30, 41, 59)
+            gray = (100, 116, 139)
+            grid_c = (229, 231, 235)
+            border_c = (226, 232, 240)
+
+            for idx in range(12):
+                r, c = divmod(idx, COLS)
+                x0 = M_LEFT + c * cell_w
+                y0 = M_TOP + r * cell_h
+                x1 = x0 + cell_w
+                y1 = y0 + cell_h
+                # Panel frame
+                draw.rounded_rectangle([x0 + 4, y0 + 4, x1 - 4, y1 - 4], radius=18,
+                                       outline=border_c, width=3)
+                if idx < n_leads:
+                    vals = leads[idx]
+                    name = LEAD_ORDER_12[idx]
+                    color = self._hex_to_rgb(LEAD_HEX_COLORS_12[idx % 12])
+                else:
+                    vals = None
+                    name = LEAD_ORDER_12[idx]
+                    color = (148, 163, 184)
+
+                draw.text((x0 + 26, y0 + 16), name, fill=dark, font=f_title)
+
+                # Plot area inside panel
+                px0, py0 = x0 + 118, y0 + 80
+                px1, py1 = x1 - 26, y1 - 72
+                # Light grid
+                for g in range(1, 5):
+                    gy = py0 + (py1 - py0) * g / 5
+                    draw.line([(px0, gy), (px1, gy)], fill=grid_c, width=2)
+                for g in range(1, 6):
+                    gx = px0 + (px1 - px0) * g / 6
+                    draw.line([(gx, py0), (gx, py1)], fill=grid_c, width=2)
+                draw.rectangle([px0, py0, px1, py1], outline=border_c, width=2)
+
+                if vals is None:
+                    draw.text((px0 + 10, (py0 + py1) / 2 - 16), "no data",
+                              fill=gray, font=f_label)
+                    continue
+
+                n = len(vals)
+                duration = (n - 1) / sr
+                lo, hi = min(vals), max(vals)
+                span = (hi - lo) if (hi - lo) > 1e-9 else 1.0
+                lo -= 0.12 * span
+                hi += 0.12 * span
+
+                def tx(i: int) -> float:
+                    return px0 + (px1 - px0) * (i / (n - 1))
+
+                def ty(v: float) -> float:
+                    return py1 - (py1 - py0) * ((v - lo) / (hi - lo))
+
+                pts = [(tx(i), ty(v)) for i, v in enumerate(vals)]
+                draw.line(pts, fill=color, width=4, joint="curve")
+
+                # Y ticks
+                for tv in (lo + 0.12 * (hi - lo), (lo + hi) / 2, hi - 0.12 * (hi - lo)):
+                    tyy = ty(tv)
+                    draw.text((x0 + 18, tyy - 16), f"{tv:.2f}", fill=gray, font=f_tick)
+                # X ticks
+                for tv in (0.0, duration / 2, duration):
+                    txx = px0 + (px1 - px0) * (tv / duration if duration > 0 else 0)
+                    draw.text((txx - 28, py1 + 8), f"{tv:.1f}", fill=gray, font=f_tick)
+
+                # Axis captions: bottom row -> Time (s); left column -> mV
+                if r == ROWS - 1:
+                    draw.text(((px0 + px1) / 2 - 52, y1 - 38), "Time (s)",
+                              fill=gray, font=f_label)
+                if c == 0:
+                    draw.text((x0 + 18, y0 + 56), "mV", fill=gray, font=f_label)
+
+            tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+            tmp_path = tmp.name
+            tmp.close()
+            img.save(tmp_path, "PNG")
+            return tmp_path
+        except Exception as e:
+            logger.exception("ECG waveform image rendering failed: %s", e)
+            return None
+
+    def _add_signal_waveform_section(self, story, analysis: Dict[str, Any]) -> Optional[str]:
+        """Embed the actual analysis waveform image. Returns temp path for cleanup."""
+        story.append(Paragraph("ECG Waveform &mdash; 12-Lead", self.styles["SectionStyle"]))
+        signal_data = analysis.get("signal_data")
+        if not signal_data:
+            story.append(Paragraph(
+                "ECG waveform image could not be generated for this analysis "
+                "(no signal data stored).", self.styles["BodyStyle"]))
+            story.append(Spacer(1, 0.4 * cm))
+            return None
+        tmp_path = self._render_signal_waveform_image(
+            signal_data, analysis.get("sampling_rate", 100))
+        if not tmp_path or not os.path.exists(tmp_path):
+            story.append(Paragraph(
+                "ECG waveform image could not be generated for this analysis.",
+                self.styles["BodyStyle"]))
+            story.append(Spacer(1, 0.4 * cm))
+            return None
+        try:
+            with PILImage.open(tmp_path) as im:
+                iw, ih = im.size
+            usable_w = 16 * cm
+            img_h = usable_w * (ih / iw) if iw else 9 * cm
+            max_h = 21 * cm
+            if img_h > max_h:
+                img_h = max_h
+                usable_w = img_h * (iw / ih)
+            story.append(Paragraph(
+                "Actual recorded 12-lead signal used for this analysis "
+                "(same data as shown in the application).",
+                self.styles["SmallStyle"]))
+            story.append(Spacer(1, 0.2 * cm))
+            story.append(Image(tmp_path, width=usable_w, height=img_h))
+            story.append(Spacer(1, 0.2 * cm))
+            story.append(Paragraph(
+                "Lead order: I, II, III (row 1); aVR, aVL, aVF (row 2); "
+                "V1, V2, V3 (row 3); V4, V5, V6 (row 4).",
+                self.styles["DisclaimerStyle"]))
+            story.append(Spacer(1, 0.4 * cm))
+            return tmp_path
+        except Exception as e:
+            logger.exception("ECG waveform image embedding failed: %s", e)
+            story.append(Paragraph(
+                "ECG waveform image could not be generated for this analysis.",
+                self.styles["BodyStyle"]))
+            story.append(Spacer(1, 0.4 * cm))
+            return tmp_path
+
     def _add_signal_section(self, story, analysis: Dict[str, Any]):
         story.append(Paragraph("Probability Distribution", self.styles["SectionStyle"]))
         probs = analysis.get("probabilities", {})
@@ -393,13 +593,22 @@ class ReportService:
             self._add_recommended_next_steps(story, analysis)
             self._add_gradcam_section(story, analysis)
         else:
+            waveform_tmp = self._add_signal_waveform_section(story, analysis)
             self._add_signal_section(story, analysis)
             self._add_statistics_section(story, analysis)
             self._add_explainability_section(story, analysis)
 
         self._add_footer(story, analysis)
 
-        doc.build(story)
+        try:
+            doc.build(story)
+        finally:
+            tmp = locals().get("waveform_tmp")
+            if tmp and isinstance(tmp, str) and os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
         return str(file_path)
 
 

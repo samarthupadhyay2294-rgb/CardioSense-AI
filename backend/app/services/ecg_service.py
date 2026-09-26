@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.ml.predictor import predictor
 from app.ml.explainability import explainability_engine
 from app.ml.preprocessing import validate_signal, preprocess_signal
+from app.services.feature_extraction import feature_extractor
+from app.services.clinical_interpretation import clinical_interpreter
 
 
 SUPPORTED_EXTENSIONS = {".dat", ".hea", ".mat", ".csv", ".npy", ".txt"}
@@ -149,6 +151,16 @@ async def process_ecg_file(file_path: str, file_name: str) -> Dict[str, Any]:
     signal_quality = compute_signal_quality(signal)
     ecg_statistics = compute_ecg_statistics(signal)
     
+    # Extract detailed features
+    detailed_features = feature_extractor.extract_all_features(signal)
+    
+    # Generate clinical interpretation
+    clinical_interpretation = clinical_interpreter.interpret_prediction(
+        prediction_result,
+        detailed_features,
+        signal_quality
+    )
+    
     explainability = None
     if prediction_result["prediction_code"] != "NORM":
         try:
@@ -178,7 +190,9 @@ async def process_ecg_file(file_path: str, file_name: str) -> Dict[str, Any]:
         "model_version": prediction_result["model_version"],
         "processing_time": prediction_result["processing_time"],
         "explainability": explainability,
-        "ecg_statistics": ecg_statistics
+        "ecg_statistics": ecg_statistics,
+        "detailed_features": detailed_features,
+        "clinical_interpretation": clinical_interpretation
     }
 
 

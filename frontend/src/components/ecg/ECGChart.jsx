@@ -46,16 +46,15 @@ function ECGChart({ signal, leadNames = LEAD_NAMES, height = 480, highlight = nu
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
-  const traceColor = isDark ? '#334155' : '#e2e8f0'
-  const textColor = isDark ? '#94a3b8' : '#475569'
-  const gridColor = isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.18)'
+  const textColor = '#475569'
+  const gridColor = 'rgba(148,163,184,0.25)'
 
   const layout = {
     height,
     autosize: true,
-    margin: { l: 48, r: 24, t: 24, b: 40 },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
+    margin: { l: 56, r: 24, t: 24, b: 50 },
+    paper_bgcolor: '#ffffff',
+    plot_bgcolor: '#ffffff',
     font: { color: textColor, family: 'Inter, sans-serif', size: 11 },
     xaxis: {
       title: { text: 'Time (s)', font: { color: textColor } },
@@ -87,12 +86,12 @@ function ECGChart({ signal, leadNames = LEAD_NAMES, height = 480, highlight = nu
       y: -0.25,
       x: 0,
       font: { color: textColor },
-      bgcolor: 'rgba(0,0,0,0)',
+      bgcolor: '#ffffff',
     },
     hoverlabel: {
-      bgcolor: isDark ? '#1e293b' : '#ffffff',
+      bgcolor: '#ffffff',
       bordercolor: gridColor,
-      font: { color: isDark ? '#e2e8f0' : '#0f172a', family: 'Inter, sans-serif' },
+      font: { color: '#0f172a', family: 'Inter, sans-serif' },
     },
   }
 
@@ -105,14 +104,13 @@ function ECGChart({ signal, leadNames = LEAD_NAMES, height = 480, highlight = nu
   const data = buildTraces(signal, leadNames, theme, highlight)
 
   return (
-    <div className="w-full overflow-hidden rounded-xl">
+    <div className="ecg-chart-container w-full rounded-xl">
       <Plot
         data={data}
         layout={layout}
         config={config}
         useResizeHandler
-        style={{ width: '100%', height }}
-        className="h-full w-full"
+        style={{ width: '100%', height: `${height}px` }}
       />
     </div>
   )

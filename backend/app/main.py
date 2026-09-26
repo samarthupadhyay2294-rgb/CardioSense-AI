@@ -54,6 +54,9 @@ from app.api.history import router as history_router
 from app.api.statistics import router as statistics_router
 from app.api.model import router as model_router
 from app.api.image_ecg import router as image_ecg_router
+from app.api.simulation import router as simulation_router
+from app.api.performance import router as performance_router
+from app.api.batch import router as batch_router
 
 app.include_router(health_router)
 app.include_router(history_router)
@@ -61,6 +64,9 @@ app.include_router(ecg_router)
 app.include_router(statistics_router)
 app.include_router(model_router)
 app.include_router(image_ecg_router)
+app.include_router(simulation_router)
+app.include_router(performance_router)
+app.include_router(batch_router)
 
 
 @app.get("/")

@@ -25,6 +25,8 @@ class ECGAnalysis(Base):
     explainability = Column(JSON, nullable=True)
     ecg_statistics = Column(JSON, nullable=True)
     signal_data = Column(JSON, nullable=True)
+    detailed_features = Column(JSON, nullable=True)
+    clinical_interpretation = Column(JSON, nullable=True)
     image_path = Column(String(500), nullable=True)
     gradcam_path = Column(String(500), nullable=True)
     gradcam_available = Column(Integer, nullable=True)
@@ -50,6 +52,8 @@ class ECGAnalysis(Base):
             "explainability": self.explainability,
             "ecg_statistics": self.ecg_statistics,
             "signal_data": self.signal_data,
+            "detailed_features": self.detailed_features,
+            "clinical_interpretation": self.clinical_interpretation,
             "image_path": self.image_path,
             "gradcam_path": self.gradcam_path,
             "gradcam_available": self.gradcam_available,

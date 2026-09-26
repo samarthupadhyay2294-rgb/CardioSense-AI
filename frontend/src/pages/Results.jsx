@@ -13,6 +13,9 @@ import {
 import { api } from '../services/api'
 import { Card, CardHeader, LoadingState, ErrorState } from '../components/Card'
 import ECGChart from '../components/ecg/ECGChart'
+import ECG12LeadGrid from '../components/ecg/ECG12LeadGrid'
+import FeatureDisplay from '../components/features/FeatureDisplay'
+import ClinicalInterpreter from '../components/interpretation/ClinicalInterpreter'
 import Assistant from '../components/assistant/Assistant'
 import GradCAMViewer from '../components/image-analysis/GradCAMViewer'
 import ECGPatternAssessment from '../components/image-analysis/ECGPatternAssessment'
@@ -237,7 +240,7 @@ function SignalResults({ analysis }) {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="ecg-panel">
           <CardHeader
             title="ECG Waveform"
             subtitle="12-lead recording with zoom, pan, and lead inspection"
@@ -256,6 +259,18 @@ function SignalResults({ analysis }) {
           />
           <ECGChart signal={signal} leadNames={LEAD_NAMES.slice(0, signal.length)} highlight={showExplain ? highlight : null} height={460} />
         </Card>
+
+        {/* 12-Lead Grid Display */}
+        {signal && signal.length > 0 && (
+          <Card className="ecg-panel">
+            <CardHeader
+              title="12-Lead Clinical Display"
+              subtitle="Standard clinical format ECG grid"
+              icon={Activity}
+            />
+            <ECG12LeadGrid signalData={signal} samplingRate={analysis.sampling_rate || 100} />
+          </Card>
+        )}
 
         <Card>
           <CardHeader title="Signal Statistics" subtitle="Technical ECG data" icon={Activity} />
@@ -279,6 +294,16 @@ function SignalResults({ analysis }) {
           </div>
         </Card>
       </div>
+
+      {/* Detailed Features Display */}
+      {analysis.detailed_features && (
+        <FeatureDisplay features={analysis.detailed_features} />
+      )}
+
+      {/* Clinical Interpretation */}
+      {analysis.clinical_interpretation && (
+        <ClinicalInterpreter interpretation={analysis.clinical_interpretation} />
+      )}
 
       {analysis.warning && (
         <Card>

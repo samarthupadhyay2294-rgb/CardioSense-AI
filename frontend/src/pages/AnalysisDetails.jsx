@@ -107,7 +107,7 @@ function AnalysisDetails() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="ecg-panel">
           <CardHeader title="ECG Waveform" subtitle="12-lead recording" icon={Waves} />
           <ECGChart signal={signal} leadNames={LEAD_NAMES.slice(0, signal.length)} height={380} />
         </Card>
