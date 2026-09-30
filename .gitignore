@@ -43,3 +43,6 @@ backend/models/*.pt
 .tmp/
 
 records100.zip
+records100/
+Ecg_image.zip
+

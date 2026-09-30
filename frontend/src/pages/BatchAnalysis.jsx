@@ -337,7 +337,6 @@ function BatchAnalysis() {
                     <th className="text-left py-2 px-4">File</th>
                     <th className="text-left py-2 px-4">Status</th>
                     <th className="text-left py-2 px-4">Prediction</th>
-                    <th className="text-right py-2 px-4">Confidence</th>
                     <th className="text-left py-2 px-4">Signal Quality</th>
                   </tr>
                 </thead>
@@ -364,11 +363,6 @@ function BatchAnalysis() {
                       </td>
                       <td className="py-2 px-4">
                         {result.status === 'success' ? result.prediction : '-'}
-                      </td>
-                      <td className="text-right py-2 px-4">
-                        {result.status === 'success' 
-                          ? (result.confidence * 100).toFixed(1) + '%' 
-                          : '-'}
                       </td>
                       <td className="py-2 px-4">
                         {result.status === 'success' ? result.signal_quality : '-'}
@@ -405,9 +399,6 @@ function BatchAnalysis() {
                   <div className="bg-blue-50 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">Prediction</h4>
                     <p className="text-lg font-bold">{selectedResult.prediction}</p>
-                    <p className="text-sm text-gray-600">
-                      Confidence: {(selectedResult.confidence * 100).toFixed(1)}%
-                    </p>
                   </div>
 
                   {/* Features Summary */}

@@ -9,7 +9,7 @@ import {
   ListChecks,
 } from 'lucide-react'
 import { Card, CardHeader, EmptyState } from '../Card'
-import { formatConfidence, humanReadableLabel, GROUP_ORDER } from '../../utils/helpers'
+import { humanReadableLabel, GROUP_ORDER } from '../../utils/helpers'
 
 const GROUP_COLORS = {
   Normal: { text: 'text-emerald-600', bar: 'from-emerald-400 to-teal-500' },
@@ -36,7 +36,6 @@ function GroupBar({ group, value, dominant }) {
             </span>
           )}
         </span>
-        <span className={`text-sm font-semibold ${color.text}`}>{formatConfidence(value)}</span>
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
@@ -52,16 +51,13 @@ function SubclassBar({ item, primary }) {
   const pct = item.probability * 100
   return (
     <div className="rounded-xl border border-slate-100 p-3 dark:border-slate-800">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
         <div className="min-w-0">
           <p className={`truncate text-sm ${primary ? 'font-bold text-primary-700 dark:text-aqua-400' : 'font-medium text-slate-700 dark:text-slate-200'}`}>
             {item.human_readable_label}
           </p>
           <p className="text-xs text-slate-400">{item.group}</p>
         </div>
-        <span className="shrink-0 text-sm font-semibold text-slate-800 dark:text-slate-100">
-          {formatConfidence(item.probability)}
-        </span>
       </div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div

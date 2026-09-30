@@ -129,51 +129,53 @@ def compute_ecg_statistics(signal: np.ndarray) -> Dict[str, Any]:
     return stats
 
 
-async def process_ecg_file(file_path: str, file_name: str) -> Dict[str, Any]:
+async def process_ecg_file(file_path: str, file_name: str, skip_interpretation: bool = False) -> Dict[str, Any]:
     signal, metadata = read_ecg_file(file_path)
-    
+
     is_valid, msg = validate_ecg_signal(signal, metadata)
     if not is_valid:
         raise ValueError(f"Signal validation failed: {msg}")
-    
+
     if signal.shape[0] == EXPECTED_LENGTH and signal.shape[1] == EXPECTED_LEADS:
         signal = signal.T
-    
+
     original_signal = signal.copy()
-    
+
     if signal.shape[1] != EXPECTED_LENGTH:
         from scipy.signal import resample
         signal = resample(signal, EXPECTED_LENGTH, axis=1)
         original_signal = signal.copy()
-    
+
     prediction_result = predictor.predict(signal)
-    
+
     signal_quality = compute_signal_quality(signal)
     ecg_statistics = compute_ecg_statistics(signal)
-    
-    # Extract detailed features
-    detailed_features = feature_extractor.extract_all_features(signal)
-    
-    # Generate clinical interpretation
-    clinical_interpretation = clinical_interpreter.interpret_prediction(
-        prediction_result,
-        detailed_features,
-        signal_quality
-    )
-    
+
+    # Extract detailed features and generate clinical interpretation only if not skipped
+    detailed_features = None
+    clinical_interpretation = None
+
+    if not skip_interpretation:
+        detailed_features = feature_extractor.extract_all_features(signal)
+        clinical_interpretation = clinical_interpreter.interpret_prediction(
+            prediction_result,
+            detailed_features,
+            signal_quality
+        )
+
     explainability = None
     if prediction_result["prediction_code"] != "NORM":
         try:
             explainability = explainability_engine.get_attribution(
-                signal, 
+                signal,
                 prediction_result["prediction_code"],
                 method="integrated_gradients"
             )
         except Exception as e:
             explainability = {"error": str(e)}
-    
+
     signal_data = downsample_signal(original_signal, target_points=500)
-    
+
     return {
         "file_name": file_name,
         "file_path": file_path,

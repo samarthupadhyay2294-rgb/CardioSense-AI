@@ -2,14 +2,30 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 async function request(path, options = {}) {
   const url = `${API_BASE}${path}`
-  const res = await fetch(url, options)
+  let res
+  try {
+    res = await fetch(url, options)
+  } catch (e) {
+    // Network error or CORS error
+    const error = new Error(`Network error: ${e.message}. Backend may be unreachable or CORS is misconfigured.`)
+    error.status = 0
+    error.originalError = e
+    throw error
+  }
   const contentType = res.headers.get('content-type') || ''
   if (!res.ok) {
     let detail = `Request failed (${res.status})`
     if (contentType.includes('application/json')) {
-      const data = await res.json()
-      if (typeof data.detail === 'string') detail = data.detail
-      else if (Array.isArray(data.detail)) detail = data.detail.map((d) => d.msg).join('; ')
+      try {
+        const data = await res.json()
+        if (typeof data.detail === 'string') detail = data.detail
+        else if (Array.isArray(data.detail)) detail = data.detail.map((d) => d.msg).join('; ')
+      } catch (e) {
+        // If parsing JSON fails, use status text
+        detail = res.statusText || detail
+      }
+    } else {
+      detail = res.statusText || detail
     }
     const error = new Error(detail)
     error.status = res.status
@@ -27,10 +43,11 @@ export const api = {
   getModelStatus: () => request('/api/model/status'),
   getStatistics: () => request('/api/statistics'),
 
-  analyzeECG: (files) => {
+  analyzeECG: (files, skipInterpretation = true) => {
     const form = new FormData()
     files.forEach((f) => form.append('files', f))
-    return request('/api/ecg/analyze', { method: 'POST', body: form })
+    const url = skipInterpretation ? '/api/ecg/analyze?skip_interpretation=true' : '/api/ecg/analyze'
+    return request(url, { method: 'POST', body: form })
   },
 
   analyzeECGImage: (file) => {
@@ -70,4 +87,16 @@ export const api = {
   getImageReportUrl: (id) => `${API_BASE}/api/ecg-image/report/${id}`,
   getImageUrl: (id) => `${API_BASE}/api/ecg-image/${id}/image`,
   getGradcamUrl: (id) => `${API_BASE}/api/ecg-image/${id}/gradcam`,
+
+  getGeminiInterpretation: (analysisId) => {
+    return request('/api/interpretation/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ analysis_id: analysisId })
+    })
+  },
+
+  generateInterpretation: (analysisId) => {
+    return request(`/api/ecg/${analysisId}/interpretation`, { method: 'POST' })
+  }
 }

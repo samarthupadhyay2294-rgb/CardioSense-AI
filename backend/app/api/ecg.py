@@ -86,32 +86,33 @@ def _save_wfdb_pair(files: list) -> str:
 @router.post("/api/ecg/upload", response_model=ECGUploadResponse)
 async def upload_ecg(
     files: list[UploadFile] = File(...),
+    skip_interpretation: bool = Query(False, description="Skip feature extraction and clinical interpretation for faster processing"),
     db: Session = Depends(get_db)
 ):
     if not files:
         raise HTTPException(status_code=400, detail="No files uploaded")
-    
+
     try:
         if len(files) == 1:
             file = files[0]
             filename = file.filename or "upload"
             ext = Path(filename).suffix.lower()
-            
+
             if ext not in ALLOWED_SINGLE_EXTENSIONS and ext not in ALLOWED_WFDB_EXTENSIONS:
                 raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
-            
+
             content = file.file.read()
             if len(content) == 0:
                 raise HTTPException(status_code=400, detail="Empty file uploaded")
             if len(content) > MAX_SIZE:
                 raise HTTPException(status_code=413, detail="File exceeds maximum upload size")
-            
+
             file_path = save_uploaded_file(content, filename)
-            result = await process_ecg_file(file_path, filename)
+            result = await process_ecg_file(file_path, filename, skip_interpretation=skip_interpretation)
         else:
             hea_path = _save_wfdb_pair(files)
             hea_name = Path(hea_path).name
-            result = await process_ecg_file(hea_path, hea_name)
+            result = await process_ecg_file(hea_path, hea_name, skip_interpretation=skip_interpretation)
         
         analysis = ECGAnalysis(
             file_name=result["file_name"],
@@ -153,9 +154,10 @@ async def upload_ecg(
 @router.post("/api/ecg/analyze")
 async def analyze_ecg(
     files: list[UploadFile] = File(...),
+    skip_interpretation: bool = Query(False, description="Skip feature extraction and clinical interpretation for faster processing"),
     db: Session = Depends(get_db)
 ):
-    return await upload_ecg(files, db)
+    return await upload_ecg(files=files, skip_interpretation=skip_interpretation, db=db)
 
 
 @router.get("/api/ecg/report/{analysis_id}")
@@ -211,3 +213,55 @@ def assistant_query(
     
     answer = summary_service.answer_question(analysis.to_dict(), question)
     return {"answer": answer, "analysis_id": analysis_id}
+
+
+@router.post("/api/ecg/{analysis_id}/interpretation")
+def generate_interpretation(analysis_id: int, db: Session = Depends(get_db)):
+    """Generate clinical interpretation on-demand for an existing analysis."""
+    from app.services.feature_extraction import feature_extractor
+    from app.services.clinical_interpretation import clinical_interpreter
+    from app.services.ecg_service import read_ecg_file, compute_signal_quality
+
+    analysis = db.query(ECGAnalysis).filter(ECGAnalysis.id == analysis_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    # If interpretation already exists, return it
+    if analysis.clinical_interpretation:
+        return {"interpretation": analysis.clinical_interpretation, "analysis_id": analysis_id}
+
+    # Check if file path exists
+    if not analysis.file_path:
+        raise HTTPException(status_code=400, detail="No file path available for feature extraction")
+
+    try:
+        # Read the ECG file again to extract features
+        signal, metadata = read_ecg_file(analysis.file_path)
+
+        # Extract detailed features
+        detailed_features = feature_extractor.extract_all_features(signal)
+
+        # Generate clinical interpretation
+        prediction_dict = {
+            "prediction": analysis.prediction,
+            "prediction_code": analysis.prediction_code,
+            "confidence": analysis.confidence
+        }
+
+        clinical_interpretation = clinical_interpreter.interpret_prediction(
+            prediction_dict,
+            detailed_features,
+            analysis.signal_quality
+        )
+
+        # Update analysis with interpretation
+        analysis.clinical_interpretation = clinical_interpretation
+        analysis.detailed_features = detailed_features
+        db.commit()
+        db.refresh(analysis)
+
+        return {"interpretation": clinical_interpretation, "analysis_id": analysis_id}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Interpretation generation failed: {str(e)}")

@@ -14,7 +14,7 @@ import {
 import { api } from '../services/api'
 import StatCard from '../components/dashboard/StatCard'
 import { Card, CardHeader, LoadingState, ErrorState, EmptyState } from '../components/Card'
-import { formatDate, formatConfidence, getClassColor, signalQualityBadge } from '../utils/helpers'
+import { formatDate, getClassColor, signalQualityBadge } from '../utils/helpers'
 import {
   ResponsiveContainer,
   PieChart,
@@ -159,9 +159,6 @@ function Dashboard() {
                       </div>
                       <span className={`hidden sm:inline-flex badge ${quality.cls}`}>{quality.label}</span>
                       <span className={`badge ${color.bg} ${color.text} ${color.darkBg}`}>{item.prediction}</span>
-                      <span className="w-16 text-right text-sm font-semibold text-slate-700 dark:text-slate-200">
-                        {formatConfidence(item.confidence)}
-                      </span>
                     </Link>
                   )
                 })}
@@ -203,23 +200,6 @@ function Dashboard() {
                   <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} />
                   <Legend />
                 </PieChart>
-              </ResponsiveContainer>
-            )}
-          </Card>
-
-          <Card>
-            <CardHeader title="Confidence Distribution" icon={Gauge} />
-            {confData.length === 0 ? (
-              <EmptyState icon={Gauge} title="No data" message="Analyze ECGs to populate." />
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={confData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} />
-                  <Bar dataKey="count" fill="#0891b2" radius={[6, 6, 0, 0]} />
-                </BarChart>
               </ResponsiveContainer>
             )}
           </Card>

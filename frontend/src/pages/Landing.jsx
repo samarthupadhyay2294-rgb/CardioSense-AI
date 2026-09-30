@@ -235,7 +235,7 @@ function Landing() {
             <Feature icon={Eye} color="purple" title="Explainable AI" desc="Integrated Gradients attribution showing which leads and signal regions drove the prediction." />
             <Feature icon={FileText} color="blue" title="PDF Reports" desc="Branded reports with prediction, probabilities, statistics, and explainability." />
             <Feature icon={BarChart3} color="amber" title="Analytics Dashboard" desc="Real statistics computed live from your analysis history — nothing hardcoded." />
-            <Feature icon={MessageSquareText} color="red" title="CardioSense Assistant" desc="Ask questions about the result, confidence, leads, and statistics. Answers from in-app data only." />
+            <Feature icon={MessageSquareText} color="red" title="CardioSense Assistant" desc="Ask questions about the result, leads, and statistics. Answers from in-app data only." />
           </div>
         </div>
       </section>

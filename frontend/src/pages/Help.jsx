@@ -33,10 +33,6 @@ function Help() {
       a: 'No. CardioSense AI provides AI-generated ECG signal analysis for research and decision-support purposes. It is not a medical diagnosis and does not replace evaluation by a qualified healthcare professional.',
     },
     {
-      q: 'How is the "confidence" computed?',
-      a: 'The confidence is the model probability for the primary (highest-probability detected) class. The full probability distribution across all classes is shown in the results view.',
-    },
-    {
       q: 'Can I export a report?',
       a: 'Yes. Every analysis can be exported as a branded PDF report containing the prediction, probability distribution, signal statistics, and explainability (when available).',
     },

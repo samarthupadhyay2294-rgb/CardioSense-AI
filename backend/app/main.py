@@ -43,6 +43,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +58,7 @@ from app.api.image_ecg import router as image_ecg_router
 from app.api.simulation import router as simulation_router
 from app.api.performance import router as performance_router
 from app.api.batch import router as batch_router
+from app.api.gemini_interpretation import router as gemini_interpretation_router
 
 app.include_router(health_router)
 app.include_router(history_router)
@@ -67,6 +69,7 @@ app.include_router(image_ecg_router)
 app.include_router(simulation_router)
 app.include_router(performance_router)
 app.include_router(batch_router)
+app.include_router(gemini_interpretation_router)
 
 
 @app.get("/")

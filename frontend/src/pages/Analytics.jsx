@@ -13,7 +13,6 @@ import {
 import { api } from '../services/api'
 import { Card, CardHeader, LoadingState, ErrorState, EmptyState } from '../components/Card'
 import StatCard from '../components/dashboard/StatCard'
-import { formatConfidence } from '../utils/helpers'
 import {
   ResponsiveContainer,
   PieChart,
@@ -87,11 +86,10 @@ function Analytics() {
         </button>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Total Analyses" value={stats.total_analyses} icon={FileSearch} color="primary" />
         <StatCard label="Signal Analyses" value={stats.signal_count} icon={Activity} color="teal" />
         <StatCard label="Image Analyses" value={stats.image_count} icon={ImageIcon} color="purple" />
-        <StatCard label="Average Confidence" value={formatConfidence(stats.average_confidence)} icon={Gauge} color="teal" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -133,39 +131,26 @@ function Analytics() {
           <Card>
             <CardHeader title="Image Prediction Distribution" subtitle="Count per class (image model)" icon={ImageIcon} />
             <EmptyState icon={ImageIcon} title="No data" message="Analyze ECG images to populate." />
-           </Card>
-        )
-      }
+          </Card>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Confidence Distribution" subtitle="Bucket of model confidence (%) — both models" icon={Gauge} />
-          {confData.length === 0 ? (
-            <EmptyState icon={Gauge} title="No data" message="Analyze ECGs to populate analytics." />
+          <CardHeader title="Signal Quality Distribution" subtitle="Count per quality rating (signal model)" icon={Activity} />
+          {stats.signal_quality_distribution.length === 0 ? (
+            <EmptyState icon={Activity} title="No data" message="Analyze ECG signals to populate." />
           ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={confData}>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={stats.signal_quality_distribution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12 }} />
-                <Bar dataKey="count" fill="#0891b2" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
-        </Card>
-
-        <Card>
-          <CardHeader title="Processing Time" subtitle="Average per analysis" icon={Timer} />
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center">
-              <p className="font-display text-3xl font-extrabold text-slate-800 dark:text-slate-100">
-                {stats.average_processing_time.toFixed(3)} s
-              </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">mean processing time</p>
-            </div>
-          </div>
         </Card>
       </div>
 

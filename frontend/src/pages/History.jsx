@@ -12,14 +12,13 @@ import {
 } from 'lucide-react'
 import { api } from '../services/api'
 import { Card, LoadingState, ErrorState, EmptyState } from '../components/Card'
-import { formatDate, formatConfidence, getClassColor, signalQualityBadge, PREDICTION_CODE_MAP } from '../utils/helpers'
+import { formatDate, getClassColor, signalQualityBadge, PREDICTION_CODE_MAP } from '../utils/helpers'
 
 const PAGE_SIZE = 10
 
 const SORT_COLUMNS = [
   { key: 'created_at', label: 'Date' },
   { key: 'prediction', label: 'Prediction' },
-  { key: 'confidence', label: 'Confidence' },
   { key: 'signal_quality', label: 'Quality' },
 ]
 
@@ -198,9 +197,6 @@ function History() {
                         </td>
                         <td className="px-5 py-3">
                           <span className="badge border border-slate-200 dark:border-slate-600">{item.prediction}</span>
-                        </td>
-                        <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-200">
-                          {formatConfidence(item.confidence)}
                         </td>
                         <td className="px-5 py-3">
                           <span className={`badge ${quality.cls}`}>{item.signal_quality ? quality.label : item.model_name || ''}</span>

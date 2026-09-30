@@ -16,13 +16,13 @@ import ECGChart from '../components/ecg/ECGChart'
 import ECG12LeadGrid from '../components/ecg/ECG12LeadGrid'
 import FeatureDisplay from '../components/features/FeatureDisplay'
 import ClinicalInterpreter from '../components/interpretation/ClinicalInterpreter'
+import GeminiClinicalInterpretation from '../components/interpretation/GeminiClinicalInterpretation'
 import Assistant from '../components/assistant/Assistant'
 import GradCAMViewer from '../components/image-analysis/GradCAMViewer'
 import ECGPatternAssessment from '../components/image-analysis/ECGPatternAssessment'
 import {
   formatDate,
   formatDuration,
-  formatConfidence,
   getClassColor,
   signalQualityBadge,
   humanReadableLabel,
@@ -165,13 +165,9 @@ function ImageResults({ analysis }) {
         </Card>
       )}
 
-      {/* Medical Disclaimer */}
-      {analysis.medical_disclaimer && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>{analysis.medical_disclaimer}</p>
-        </div>
-      )}
+      {/* AI Clinical Interpretation (Gemini) */}
+      <GeminiClinicalInterpretation analysisId={analysis.id} isImage={true} />
+
     </div>
   )
 }
@@ -210,32 +206,7 @@ function SignalResults({ analysis }) {
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">{analysis.file_name}</p>
             </div>
-            <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Confidence
-              </p>
-              <p className={`font-display text-3xl font-extrabold ${color.text}`}>
-                {formatConfidence(analysis.confidence)}
-              </p>
-              <span className={`badge mt-1 ${quality.cls}`}>{quality.label} signal</span>
-            </div>
           </div>
-
-          {isNormal ? (
-            <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-              <AlertTriangle className="h-4 w-4" />
-              No significant abnormalities detected by the model.
-            </div>
-          ) : (
-            <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>
-                The model detected {analysis.prediction.toLowerCase()}. This is an
-                AI-generated finding for decision support — seek professional medical
-                evaluation for any concerns.
-              </p>
-            </div>
-          )}
         </div>
       </motion.div>
 
@@ -301,9 +272,10 @@ function SignalResults({ analysis }) {
       )}
 
       {/* Clinical Interpretation */}
-      {analysis.clinical_interpretation && (
-        <ClinicalInterpreter interpretation={analysis.clinical_interpretation} />
-      )}
+      <ClinicalInterpreter interpretation={analysis.clinical_interpretation} analysisId={analysis.id} />
+
+      {/* AI Clinical Interpretation (Gemini) */}
+      <GeminiClinicalInterpretation analysisId={analysis.id} isImage={false} />
 
       {analysis.warning && (
         <Card>
@@ -311,15 +283,6 @@ function SignalResults({ analysis }) {
           <p className="text-sm text-amber-700 dark:text-amber-400">{analysis.warning}</p>
         </Card>
       )}
-
-      <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        <p>
-          CardioSense AI provides AI-generated ECG signal analysis for research and
-          decision-support purposes. It is not a medical diagnosis and does not replace
-          evaluation by a qualified healthcare professional.
-        </p>
-      </div>
     </>
   )
 }

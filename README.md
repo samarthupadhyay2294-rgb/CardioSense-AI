@@ -85,6 +85,15 @@
 - 🔍 **Differential Diagnosis**: Possible alternative diagnoses to consider
 - ⚠️ **Limitations**: Clear documentation of interpretation limitations and disclaimers
 
+### 🤖 AI Clinical Interpretation Powered by Gemini
+- 🧠 **Gemini Integration**: AI-powered clinical interpretation layer on top of CardioSense predictions
+- 📊 **Context-Aware**: Uses controlled clinical associations and confidence levels
+- 🛡️ **Safety-First**: Post-processing safety validation rejects definitive diagnostic language
+- 🔄 **Caching**: In-memory cache prevents duplicate API calls for same predictions
+- 📄 **PDF Integration**: Gemini interpretation included in both signal and image PDF reports
+- 💬 **Assistant Integration**: CardioSense Assistant uses Gemini context for richer answers
+- ⚠️ **Non-Diagnostic**: Strictly enforced as educational/research tool, not a medical diagnosis
+
 ### 📈 Model Performance Evaluation
 - 📊 **Genuine Metrics**: Accuracy, precision, recall, F1, sensitivity, specificity calculated from actual predictions
 - 📉 **Confusion Matrix**: Interactive confusion matrix with raw counts and normalized percentages
@@ -329,6 +338,8 @@ All settings come from environment variables (see `backend/.env.example`):
 | `MAX_UPLOAD_SIZE_MB` | `20` | Max image upload size |
 | `MODEL_VERSION` | `1.0` | Version reported by the API |
 | `ENVIRONMENT` | `development` | `development` → debug logging |
+| `GEMINI_API_KEY` | (optional) | Google Gemini API key for AI clinical interpretation |
+| `GEMINI_MODEL` | `gemini-3.1-flash-lite` | Gemini model to use for interpretation |
 
 ---
 
@@ -417,6 +428,7 @@ docker compose up --build
 | `GET` | `/api/ecg-image/report/{id}` | Generate image PDF report (incl. pattern assessment) |
 | `POST` | `/api/ecg-image/{id}/summary` | Generate image summary |
 | `POST` | `/api/ecg-image/{id}/assistant` | Ask the assistant about an image |
+| `POST` | `/api/interpretation/gemini` | Get AI clinical interpretation (Gemini) |
 | `GET` | `/api/history` | Get paginated analysis history |
 | `GET` | `/api/statistics` | Get live analytics and aggregations |
 | `GET` | `/api/model/info` | Get signal model information |

@@ -10,7 +10,6 @@ import {
   BrainCircuit,
   Gauge,
   FileText,
-  AlertTriangle,
 } from 'lucide-react'
 import { api } from '../services/api'
 import { Card, CardHeader, LoadingState, ErrorState } from '../components/Card'
@@ -19,7 +18,6 @@ import ProbabilityChart from '../components/results/ProbabilityChart'
 import {
   formatDate,
   formatDuration,
-  formatConfidence,
   getClassColor,
   signalQualityBadge,
 } from '../utils/helpers'
@@ -95,11 +93,6 @@ function AnalysisDetails() {
             <p className="font-display text-xl font-bold text-slate-900 dark:text-white">{analysis.prediction}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {analysis.file_name} · {formatDate(analysis.created_at)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className={`font-display text-2xl font-extrabold ${color.text}`}>
-              {formatConfidence(analysis.confidence)}
             </p>
             <span className={`badge mt-1 ${quality.cls}`}>{quality.label}</span>
           </div>
@@ -195,12 +188,6 @@ function AnalysisDetails() {
           </table>
         </div>
       </Card>
-
-      <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-4 text-xs leading-relaxed text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        CardioSense AI provides AI-generated ECG signal analysis for research and decision-support purposes. It is not a
-        medical diagnosis and does not replace evaluation by a qualified healthcare professional.
-      </div>
     </div>
   )
 }
